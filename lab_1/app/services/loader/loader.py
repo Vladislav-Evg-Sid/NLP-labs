@@ -4,7 +4,7 @@ from app.services.loader import csv_parcer, pdf_parcer, docx_parcer, txt_parcer
 def parce_file(file_path: str) -> list[str]:
     temp = file_path.split(".")
     if len(temp) < 1:
-        print("Нет расхирения искомого файла")
+        print("Нет расширения искомого файла")
         return []
     file_type = temp[-1].lower()
     match file_type:
@@ -16,5 +16,5 @@ def parce_file(file_path: str) -> list[str]:
             return txt_parcer.parse_txt(file_path)
         case "csv":
             return csv_parcer.parse_csv(file_path)
-    print("Не корректный тип файла")
+    print("Некорректный тип файла")
     return []

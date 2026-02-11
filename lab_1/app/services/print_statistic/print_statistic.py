@@ -1,11 +1,5 @@
 import statistics
-import nltk
-from nltk.tokenize import sent_tokenize, word_tokenize
 from typing import Iterable, Sequence, Union
-
-
-# Ensure punkt is available (tokenize.py also downloads it; harmless if repeated)
-nltk.download("punkt", quiet=True)
 
 
 def _is_word(token: str) -> bool:
