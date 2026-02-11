@@ -3,6 +3,11 @@ from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 import pymorphy3
 from enum import Enum
+from nltk.tokenize import word_tokenize
+
+
+def _is_word(token: str) -> bool:
+    return any(ch.isalpha() for ch in token)
 
 # Скачивание необходимых ресурсов NLTK
 nltk_download("stopwords")
@@ -51,13 +56,37 @@ def normalize(
     stop_words = add_stopwords(russian_stopwords, dop_stop_words)
     match norm_type:
         case NormalizeType.LEMMATIZE:
-            result = []
+            result: list = []
             for tok in tokens:
-                result.append(lemmatize_text(tok))
+                # tok expected to be (sentences, words) as produced by tokenizer
+                if isinstance(tok, (list, tuple)) and len(tok) >= 1:
+                    sentences = tok[0]
+                else:
+                    sentences = []
+
+                sentence_lemmas: list[list[str]] = []
+                for sent in sentences:
+                    sent_words = [w for w in word_tokenize(sent, language="russian") if _is_word(w)]
+                    sentence_lemmas.append(lemmatize_text(sent_words))
+
+                # flattened lemmas for whole text
+                flat = [w for s in sentence_lemmas for w in s]
+                result.append((sentence_lemmas, flat))
             return result
         case NormalizeType.STEMMING:
-            result = []
+            result: list = []
             for tok in tokens:
-                result.append(stem_text(tok))
+                if isinstance(tok, (list, tuple)) and len(tok) >= 1:
+                    sentences = tok[0]
+                else:
+                    sentences = []
+
+                sentence_stems: list[list[str]] = []
+                for sent in sentences:
+                    sent_words = [w for w in word_tokenize(sent, language="russian") if _is_word(w)]
+                    sentence_stems.append(stem_text(sent_words))
+
+                flat = [w for s in sentence_stems for w in s]
+                result.append((sentence_stems, flat))
             return result
     return []

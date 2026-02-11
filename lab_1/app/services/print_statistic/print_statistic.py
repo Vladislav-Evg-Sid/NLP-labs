@@ -1,72 +1,81 @@
-from statistics import median
-from collections import Counter
+import statistics
+import nltk
+from nltk.tokenize import sent_tokenize, word_tokenize
+from typing import Iterable, Sequence, Union
 
 
-def print_statistic(texts: list[str], tokens: list[list[str]]) -> None:
-    """
-    Выводит статистику по текстам:
-    - Количество текстов
-    - Средняя и медианная длины предложений (в словах)
-    - Средняя и медианная длины слов (в символах)
-    - Минимальная и максимальная длины предложений
-    - Минимальная и максимальная длины слов
-    - Количество уникальных слов
-    """
+# Ensure punkt is available (tokenize.py also downloads it; harmless if repeated)
+nltk.download("punkt", quiet=True)
 
-    # Количество текстов
-    num_texts = len(texts)
 
-    # Длины предложений в словах
-    sentence_lengths = [len(token_list) for token_list in tokens]
+def _is_word(token: str) -> bool:
+    return any(ch.isalpha() for ch in token)
 
-    # Все слова из всех текстов
-    all_words = []
-    for token_list in tokens:
-        all_words.extend(token_list)
 
-    # Длины слов в символах
-    word_lengths = [len(word) for word in all_words]
-
-    # Уникальные слова
-    unique_words = set(all_words)
-    num_unique_words = len(unique_words)
-
-    # Вычисления
-    avg_sentence_length = (
-        sum(sentence_lengths) / len(sentence_lengths) if sentence_lengths else 0
+def _safe_stats(values: Iterable[int]) -> tuple[float, float, int, int]:
+    vals = list(values)
+    if not vals:
+        return 0.0, 0.0, 0, 0
+    return (
+        statistics.mean(vals),
+        statistics.median(vals),
+        min(vals),
+        max(vals),
     )
-    median_sentence_length = median(sentence_lengths) if sentence_lengths else 0
 
-    min_sentence_length = min(sentence_lengths) if sentence_lengths else 0
-    max_sentence_length = max(sentence_lengths) if sentence_lengths else 0
 
-    avg_word_length = sum(word_lengths) / len(word_lengths) if word_lengths else 0
-    median_word_length = median(word_lengths) if word_lengths else 0
+def print_statistic(
+    data: Union[Sequence[str], Sequence[Sequence[str]]]
+) -> None:
+    if not data:
+        print("----- Статистика текстов -----")
+        print("Количество текстов: 0")
+        return
 
-    min_word_length = min(word_lengths) if word_lengths else 0
-    max_word_length = max(word_lengths) if word_lengths else 0
+    if all(isinstance(x, Sequence) for x in data):
+        is_norm_by_sentence = all(
+            isinstance(x, Sequence)
+            and len(x) >= 2
+            and all(isinstance(s, Sequence) for s in x[0])
+            for x in data
+        )
 
-    # Вывод статистики
-    print("=" * 70)
-    print("СТАТИСТИКА ПО ТЕКСТАМ")
-    print("=" * 70)
-    print(f"\nКоличество текстов: {num_texts}")
-    print(f"\nКоличество уникальных слов: {num_unique_words}")
-    print(f"Общее количество слов: {len(all_words)}")
+        if is_norm_by_sentence:
+            token_texts = data
+            num_texts = len(token_texts)
 
-    print("\n" + "-" * 70)
-    print("СТАТИСТИКА ПО ПРЕДЛОЖЕНИЯМ (в словах):")
-    print("-" * 70)
-    print(f"Средняя длина предложения: {avg_sentence_length:.2f} слов")
-    print(f"Медианная длина предложения: {median_sentence_length} слов")
-    print(f"Минимальная длина предложения: {min_sentence_length} слов")
-    print(f"Максимальная длина предложения: {max_sentence_length} слов")
+            sentence_lengths: list[int] = []
+            word_lengths: list[int] = []
+            unique_words: set[str] = set()
 
-    print("\n" + "-" * 70)
-    print("СТАТИСТИКА ПО СЛОВАМ (в символах):")
-    print("-" * 70)
-    print(f"Средняя длина слова: {avg_word_length:.2f} символов")
-    print(f"Медианная длина слова: {median_word_length} символов")
-    print(f"Минимальная длина слова: {min_word_length} символов")
-    print(f"Максимальная длина слова: {max_word_length} символов")
-    print("=" * 70)
+            for sent_lists, flat in token_texts:
+                for s in sent_lists:
+                    sentence_lengths.append(len([w for w in s if _is_word(w)]))
+                for w in flat:
+                    if _is_word(w):
+                        word_lengths.append(len(w))
+                        unique_words.add(w.lower())
+
+            avg_sent, med_sent, min_sent, max_sent = _safe_stats(sentence_lengths)
+            avg_word, med_word, min_word, max_word = _safe_stats(word_lengths)
+
+            
+            print("----- Статистика текстов -----")
+            print(f"Количество текстов: {num_texts}")
+
+            print("\nДлина предложений (в словах):")
+            print(f"Среднее: {avg_sent:.2f}")
+            print(f"Медиана: {med_sent:.2f}")
+            print(f"Минимальная: {min_sent}")
+            print(f"Максимальная: {max_sent}")
+
+            print("\nДлина слов (в символах):")
+            print(f"Среднее: {avg_word:.2f}")
+            print(f"Медиана: {med_word:.2f}")
+            print(f"Минимальная: {min_word}")
+            print(f"Максимальная: {max_word}")
+
+            print(f"\nКоличество уникальных слов во всех текстах: {len(unique_words)}\n")
+            return
+
+    print("Входные данные имеют неизвестную форму для вычисления статистики")
