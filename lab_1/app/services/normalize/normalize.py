@@ -26,7 +26,7 @@ def add_stopwords(base: list[str], dop: set[str]) -> set[str]:
     return all_stopwords
 
 
-def delete_stop_words(tokens: list[list[str]], stop_words: set[str]):
+def delete_stop_words(tokens: list[list[str]], stop_words: set[str]) -> None:
     for i in range(len(tokens)):
         for sw in stop_words:
             try:
@@ -35,11 +35,11 @@ def delete_stop_words(tokens: list[list[str]], stop_words: set[str]):
                 pass
 
 
-def stem_text(tokens):  # TODO: Дописать сигнатуру
+def stem_text(tokens: list[str]) -> list[str]:
     return [stemmer.stem(word) for word in tokens]
 
 
-def lemmatize_text(tokens):  # TODO: Дописать сигнатуру
+def lemmatize_text(tokens: list[str]) -> list[str]:
     lemmas = []
     for word in tokens:
         # Анализ слова и выбор наиболее вероятной формы
@@ -52,7 +52,7 @@ def normalize(
     tokens: list[list[str]],
     dop_stop_words: set[str] = [],
     norm_type: NormalizeType = NormalizeType.LEMMATIZE,
-):  # TODO: Дописать сигнатуру
+) -> list[tuple[list[list[str]], list[str]]]:
     stop_words = add_stopwords(russian_stopwords, dop_stop_words)
     match norm_type:
         case NormalizeType.LEMMATIZE:

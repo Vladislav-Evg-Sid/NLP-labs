@@ -18,9 +18,7 @@ def _safe_stats(values: Iterable[int]) -> tuple[float, float, int, int]:
     )
 
 
-def print_statistic(
-    data: Union[Sequence[str], Sequence[Sequence[str]]]
-) -> None:
+def print_statistic(data: list[tuple[list[list[str]], list[str]]]) -> None:
     if not data:
         print("----- Статистика текстов -----")
         print("Количество текстов: 0")

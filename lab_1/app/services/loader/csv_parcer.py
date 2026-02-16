@@ -23,3 +23,9 @@ def parse_csv(
     except Exception as e:
         print(f"Ошибка при парсинге CSV файла {file_path}: {e}")
         return []
+
+
+def parce_csv_all(
+    file_path: str, encoding: str = "utf-8", sep: str = ","
+) -> pd.DataFrame:
+    return pd.read_csv(file_path, sep=",", encoding=encoding)
