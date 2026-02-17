@@ -5,6 +5,7 @@ from app.services.clean_up_text.clean_up_text import clean_up_text
 from app.services.tokenize.tokenize import tokenize
 from app.services.normalize.normalize import normalize, NormalizeType
 from app.services.print_statistic.print_statistic import print_statistic
+from app.services.visualization.visualization import create_both
 
 
 FILE_PATH = "C:/git/NLP-labs/lab_1/data/"
@@ -45,12 +46,32 @@ def conveyor_belt_all() -> None:
     print_statistic(normalized_tokens)
 
 
+def visualization_plots(texts_by_categories: dict[str, list[str]]) -> None:
+    frequencies_by_categories = dict()
+    
+    for category in texts_by_categories.keys():
+        norm_tokens = conveyor_belt_processing(texts_by_categories[category])
+        frequencies = dict()
+        for cur_token in norm_tokens[0][1]:
+            frequencies_by_token = 0
+            for text in texts_by_categories[category]:
+                frequencies_by_token += text.count(cur_token)
+            frequencies[cur_token] = frequencies_by_token
+        frequencies_by_categories[category] = frequencies
+        create_both(
+            frequencies,
+            count_words_to_visualization_hist=40,
+            count_words_to_visualization_wc=100,
+            window_name=f"Анализ частотности токенов по теме: \"{category}\""
+        )
+    input("Процесс выполнен")
+
+
 def main() -> None:
     """Основной код для решения домашней работы
     """
     texts_by_categories = parce_csv_by_categories(file_path=FILE_PATH+"news_5k.csv")
-    norm_tokens = conveyor_belt_processing(texts_by_categories['Дом'])
-    print(norm_tokens)
+    visualization_plots(texts_by_categories)
 
 if __name__ == "__main__":
     main()

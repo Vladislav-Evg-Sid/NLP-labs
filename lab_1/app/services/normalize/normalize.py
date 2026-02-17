@@ -85,7 +85,7 @@ def normalize(
                 else:
                     sentences = []
 
-                sentence_stems: list[list[str]] = []
+                sentence_stems = []
                 for sent in sentences:
                     sent_words = [w for w in word_tokenize(sent, language="russian") if _is_word(w)]
                     stems = stem_text(sent_words)
