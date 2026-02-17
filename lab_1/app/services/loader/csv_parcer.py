@@ -25,7 +25,10 @@ def parse_csv(
         return []
 
 
-def parce_csv_all(
-    file_path: str, encoding: str = "utf-8", sep: str = ","
-) -> pd.DataFrame:
-    return pd.read_csv(file_path, sep=",", encoding=encoding)
+def parce_csv_by_categories(file_path: str, encoding: str = "utf-8", sep: str = ",") -> dict[str, list[str]]:
+    df = pd.read_csv(file_path, sep=sep, encoding=encoding)
+    categories = df["rubric"].dropna().unique().tolist()
+    all_texts = dict()
+    for cat in categories:
+        all_texts[cat] = df[df["rubric"] == cat]["text"].tolist()
+    return all_texts

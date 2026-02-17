@@ -1,6 +1,6 @@
 from app.services.loader.loader import parce_file
 from app.services.loader.load_official_parts_of_speech import load_official_parts_of_speech
-from app.services.loader.csv_parcer import parce_csv_all
+from app.services.loader.csv_parcer import parce_csv_by_categories
 from app.services.clean_up_text.clean_up_text import clean_up_text
 from app.services.tokenize.tokenize import tokenize
 from app.services.normalize.normalize import normalize, NormalizeType
@@ -9,7 +9,7 @@ from app.services.print_statistic.print_statistic import print_statistic
 
 FILE_PATH = "C:/git/NLP-labs/lab_1/data/"
 
-def conveyor_belt_processing(texts: list[str], official_parts: set[str]) -> list[tuple[list[list[str]], list[str]]]:
+def conveyor_belt_processing(texts: list[str]) -> list[tuple[list[list[str]], list[str]]]:
     """Обрабатывает тексты
 
     Args:
@@ -19,6 +19,11 @@ def conveyor_belt_processing(texts: list[str], official_parts: set[str]) -> list
     Returns:
         list[tuple[list[list[str]], list[str]]]: Токены
     """    
+    official_parts = load_official_parts_of_speech(
+        FILE_PATH + "служебные части речи.txt"
+    )
+    print("Служебные части речи получены")
+    
     cleaned_texts = clean_up_text(texts)
     print("Текст очищен")
     
@@ -35,11 +40,7 @@ def conveyor_belt_all() -> None:
     file_name = input("Введите название файла: ")
     texts = parce_file(FILE_PATH + file_name)
     print("Тексты получены")
-    official_parts = load_official_parts_of_speech(
-        FILE_PATH + "служебные части речи.txt"
-    )
-    print("Служебные части речи получены")
-    normalized_tokens = conveyor_belt_processing(texts, official_parts)
+    normalized_tokens = conveyor_belt_processing(texts)
     
     print_statistic(normalized_tokens)
 
@@ -47,9 +48,9 @@ def conveyor_belt_all() -> None:
 def main() -> None:
     """Основной код для решения домашней работы
     """
-    df = parce_csv_all(file_path=FILE_PATH+"news_5k.csv")
-    print(df["rubric"].unique()) # TODO: Доделать второе задание
-
+    texts_by_categories = parce_csv_by_categories(file_path=FILE_PATH+"news_5k.csv")
+    norm_tokens = conveyor_belt_processing(texts_by_categories['Дом'])
+    print(norm_tokens)
 
 if __name__ == "__main__":
     main()

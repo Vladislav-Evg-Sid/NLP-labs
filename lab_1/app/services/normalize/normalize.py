@@ -22,7 +22,9 @@ class NormalizeType(Enum):
 
 
 def add_stopwords(base: list[str], dop: set[str]) -> set[str]:
-    all_stopwords = set(base) | dop
+    base_set = set(w.lower() for w in base)
+    dop_set = set(w.lower() for w in dop)
+    all_stopwords = base_set | dop_set
     return all_stopwords
 
 
@@ -50,9 +52,11 @@ def lemmatize_text(tokens: list[str]) -> list[str]:
 
 def normalize(
     tokens: list[list[str]],
-    dop_stop_words: set[str] = [],
+    dop_stop_words: set[str] | None = None,
     norm_type: NormalizeType = NormalizeType.LEMMATIZE,
 ) -> list[tuple[list[list[str]], list[str]]]:
+    if dop_stop_words is None:
+        dop_stop_words = set()
     stop_words = add_stopwords(russian_stopwords, dop_stop_words)
     match norm_type:
         case NormalizeType.LEMMATIZE:
@@ -66,7 +70,9 @@ def normalize(
                 sentence_lemmas: list[list[str]] = []
                 for sent in sentences:
                     sent_words = [w for w in word_tokenize(sent, language="russian") if _is_word(w)]
-                    sentence_lemmas.append(lemmatize_text(sent_words))
+                    lemmas = lemmatize_text(sent_words)
+                    filtered = [l for l in lemmas if l.lower() not in stop_words]
+                    sentence_lemmas.append(filtered)
 
                 flat = [w for s in sentence_lemmas for w in s]
                 result.append((sentence_lemmas, flat))
@@ -82,7 +88,10 @@ def normalize(
                 sentence_stems: list[list[str]] = []
                 for sent in sentences:
                     sent_words = [w for w in word_tokenize(sent, language="russian") if _is_word(w)]
-                    sentence_stems.append(stem_text(sent_words))
+                    stems = stem_text(sent_words)
+                    lemmas_for_check = lemmatize_text(sent_words)
+                    filtered_stems = [s for s, l in zip(stems, lemmas_for_check) if l.lower() not in stop_words and s.lower() not in stop_words]
+                    sentence_stems.append(filtered_stems)
 
                 flat = [w for s in sentence_stems for w in s]
                 result.append((sentence_stems, flat))
