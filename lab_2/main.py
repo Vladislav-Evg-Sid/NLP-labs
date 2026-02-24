@@ -7,13 +7,15 @@ from app.services.vectorization.bow.processing import bow
 from app.services.vectorization.doc2vec.processing import doc2vec
 from app.services.similarity.found import founding
 from app.services.similarity.print_top import print_top
+from app.services.dimensional_reduction.tsne.processing import tsne
+from app.services.dimensional_reduction.umap.processing import umap_reduce
 
 from pandas import DataFrame
 
 
 def processing(file_name: str) -> DataFrame:
     file_path = "lab_2/data/" + file_name
-    data = parse_csv(file_path)
+    data = parse_csv(file_path, text_column=["original_title", "overview", "genres"])
     data["overview_preproc"] = clean_up_text(data["overview"])
     data["overview_preproc"] = preprocess(data["overview_preproc"])
     return data
@@ -46,5 +48,15 @@ def main_similarity():
     print_top(tops, data_main, data_new5)
 
 
+def main_graphics():
+    data = processing("tmdb_5000_movies.csv")
+    X = doc2vec(data["overview_preproc"])
+    print('*'*100)
+    print(tsne(X))
+    print('*'*100)
+    print(umap_reduce(X))
+    print('*'*100)
+
+
 if __name__ == "__main__":
-    main_similarity()
+    main_graphics()
