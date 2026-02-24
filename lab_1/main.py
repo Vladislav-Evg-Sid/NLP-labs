@@ -46,11 +46,13 @@ def conveyor_belt_all() -> None:
     print_statistic(normalized_tokens)
 
 
-def visualization_plots(texts_by_categories: dict[str, list[str]]) -> None:
+def processing_tokens(texts_by_categories: dict[str, list[str]]) -> tuple[dict[str, dict[str, int]], dict[str, list[tuple[list[list[str]], list[str]]]]]:
     frequencies_by_categories = dict()
+    normalized_tokens = dict()
     
     for category in texts_by_categories.keys():
         norm_tokens = conveyor_belt_processing(texts_by_categories[category])
+        normalized_tokens[category] = norm_tokens
         frequencies = dict()
         for cur_token in norm_tokens[0][1]:
             frequencies_by_token = 0
@@ -58,6 +60,11 @@ def visualization_plots(texts_by_categories: dict[str, list[str]]) -> None:
                 frequencies_by_token += text.count(cur_token)
             frequencies[cur_token] = frequencies_by_token
         frequencies_by_categories[category] = frequencies
+    return frequencies_by_categories, normalized_tokens
+
+
+def vizualization_plots(frequencies_by_categories: dict[str, dict[str, int]]) -> None:
+    for category, frequencies in frequencies_by_categories.items():
         create_both(
             frequencies,
             count_words_to_visualization_hist=40,
@@ -71,7 +78,11 @@ def main() -> None:
     """Основной код для решения домашней работы
     """
     texts_by_categories = parce_csv_by_categories(file_path=FILE_PATH+"news_5k.csv")
-    visualization_plots(texts_by_categories)
+    frequencies_by_categories, norm_texts_by_categories = processing_tokens(texts_by_categories)
+    # vizualization_plots(frequencies_by_categories)
+    for category, norm_texts in norm_texts_by_categories.items():
+        print("\tКатегория:", category)
+        print_statistic(norm_texts)
 
 if __name__ == "__main__":
     main()

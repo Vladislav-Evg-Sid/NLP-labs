@@ -1,9 +1,37 @@
 import statistics
 from typing import Iterable, Sequence, Union
+from collections import Counter
+import pymorphy3
 
 
 def _is_word(token: str) -> bool:
     return any(ch.isalpha() for ch in token)
+
+
+# Morph analyzer for POS tagging
+morph = pymorphy3.MorphAnalyzer()
+
+# Mapping POS tags to Russian names
+POS_RU = {
+    "NOUN": "Существительное",
+    "VERB": "Глагол",
+    "INFN": "Инфинитив",
+    "ADJF": "Прилагательное (полное)",
+    "ADJS": "Прилагательное (краткое)",
+    "COMP": "Сравнительная степень",
+    "PRTF": "Причастие (полное)",
+    "PRTS": "Причастие (краткое)",
+    "GRND": "Деепричастие",
+    "NUMR": "Числительное",
+    "ADVB": "Наречие",
+    "NPRO": "Местоимение",
+    "PRED": "Предикатив",
+    "PREP": "Предлог",
+    "CONJ": "Союз",
+    "PRCL": "Частица",
+    "INTJ": "Междометие",
+    "UNDEFINED": "Неопределённая часть речи",
+}
 
 
 def _safe_stats(values: Iterable[int]) -> tuple[float, float, int, int]:
@@ -39,10 +67,12 @@ def print_statistic(data: list[tuple[list[list[str]], list[str]]]) -> None:
             sentence_lengths: list[int] = []
             word_lengths: list[int] = []
             unique_words: set[str] = set()
+            all_word_count: int = 0
 
             for sent_lists, flat in token_texts:
                 for s in sent_lists:
                     sentence_lengths.append(len([w for w in s if _is_word(w)]))
+                all_word_count += len(flat)
                 for w in flat:
                     if _is_word(w):
                         word_lengths.append(len(w))
@@ -68,6 +98,29 @@ def print_statistic(data: list[tuple[list[list[str]], list[str]]]) -> None:
             print(f"Максимальная: {max_word}")
 
             print(f"\nКоличество уникальных слов во всех текстах: {len(unique_words)}\n")
+            
+            print(f"\nКоэффициент лексического разнообразия: {len(unique_words)/all_word_count}")
+            
+            print("\nВыполняется частотный анализ частей речи...")
+            pos_counts: Counter = Counter()
+            for _, flat_tokens in token_texts:
+                for w in flat_tokens:
+                    if not _is_word(w):
+                        continue
+                    try:
+                        p = morph.parse(w)[0]
+                        pos = p.tag.POS or "UNDEFINED"
+                    except Exception:
+                        pos = "UNDEFINED"
+                    pos_counts[pos] += 1
+
+            total_tokens = all_word_count if all_word_count > 0 else sum(pos_counts.values())
+            print("Частотный анализ частей речи:")
+            for pos, cnt in pos_counts.most_common():
+                label = POS_RU.get(pos, pos if pos is not None else "UNDEFINED")
+                if label == "UNDEFINED":
+                    label = POS_RU["UNDEFINED"]
+                print(f" {label}: {cnt} ({cnt/total_tokens:.2%})")
             return
 
     print("Входные данные имеют неизвестную форму для вычисления статистики")
