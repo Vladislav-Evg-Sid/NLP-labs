@@ -9,6 +9,4 @@ from nltk import pos_tag
 
 def tokenizer(texts: Series[str]) -> Series[list[tuple[str, str]]]:
     texts = texts.copy()
-    for i in range(len(texts)):
-        texts.iloc[i] = pos_tag(texts.iloc[i].split(" "))
-    return texts
+    return texts.apply(lambda x: pos_tag(x.split(" ")))

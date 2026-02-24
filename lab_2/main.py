@@ -3,6 +3,8 @@ from app.services.clean_up_text.clean_up_text import clean_up_text
 from app.services.preprocessing.preprocess import preprocess
 from app.services.vectorization.tfidf.processing import tfidf
 from app.services.vectorization.glove.processing import glove
+from app.services.vectorization.bow.processing import bow
+from app.services.vectorization.doc2vec.processing import doc2vec
 from app.services.similarity.found import founding
 from app.services.similarity.print_top import print_top
 
@@ -11,7 +13,7 @@ from pandas import DataFrame
 
 def processing(file_name: str) -> DataFrame:
     file_path = "lab_2/data/" + file_name
-    data = parse_csv(file_path)
+    data = parse_csv(file_path)[:50]
     data["overview_preproc"] = clean_up_text(data["overview"])
     data["overview_preproc"] = preprocess(data["overview_preproc"])
     return data
@@ -34,6 +36,14 @@ def main():
     print_top(tops, data_main, data_new5)
 
     print(">>> Bag of Words")
+    X_old, X_new = bow(data_main["overview_preproc"], data_new5["overview_preproc"])
+    tops = founding(X_old, X_new)
+    print_top(tops, data_main, data_new5)
+
+    print(">>> Doc2vec")
+    X_old, X_new = doc2vec(data_main["overview_preproc"], data_new5["overview_preproc"])
+    tops = founding(X_old, X_new)
+    print_top(tops, data_main, data_new5)
 
 
 if __name__ == "__main__":
