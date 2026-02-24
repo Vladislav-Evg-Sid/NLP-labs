@@ -9,6 +9,7 @@ from app.services.similarity.found import founding
 from app.services.similarity.print_top import print_top
 from app.services.dimensional_reduction.tsne.processing import tsne
 from app.services.dimensional_reduction.umap.processing import umap_reduce
+from app.services.visualization.visualization import scatter_by_genres
 
 from pandas import DataFrame
 
@@ -50,13 +51,34 @@ def main_similarity():
 
 def main_graphics():
     data = processing("tmdb_5000_movies.csv")
+    X = tfidf(data["overview_preproc"])
+    scatter_by_genres(tsne(X), data["genres"], title="tfidf + tsne")
+    scatter_by_genres(umap_reduce(X), data["genres"], title="tfidf + umat")
+    
+    X = glove(data["overview_preproc"])
+    scatter_by_genres(tsne(X), data["genres"], title="glove + tsne")
+    scatter_by_genres(umap_reduce(X), data["genres"], title="glove + umat")
+    
+    X = bow(data["overview_preproc"])
+    scatter_by_genres(tsne(X), data["genres"], title="bow + tsne")
+    scatter_by_genres(umap_reduce(X), data["genres"], title="bow + umat")
+    
     X = doc2vec(data["overview_preproc"])
-    print('*'*100)
-    print(tsne(X))
-    print('*'*100)
-    print(umap_reduce(X))
-    print('*'*100)
+    scatter_by_genres(tsne(X), data["genres"], title="doc2ve + tsne")
+    scatter_by_genres(umap_reduce(X), data["genres"], title="doc2ve + umat")
+    input()
+
+
+def main_distances():
+    data = processing("tmdb_5000_movies.csv")
+    X = tfidf(data["overview_preproc"])
+    
+    X = glove(data["overview_preproc"])
+    
+    X = bow(data["overview_preproc"])
+    
+    X = doc2vec(data["overview_preproc"])
 
 
 if __name__ == "__main__":
-    main_graphics()
+    main_distances()
